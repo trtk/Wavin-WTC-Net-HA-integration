@@ -6,9 +6,9 @@
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/trtk1992/homeassistant-wavin-wtc3",
+  "documentation": "https://github.com/trtk/Wavin-WTC-Net-HA-integration",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/trtk1992/homeassistant-wavin-wtc3/issues",
+  "issue_tracker": "https://github.com/trtk/Wavin-WTC-Net-HA-integration/issues",
   "requirements": [
     "pymodbus>=3.8.0"
   ],

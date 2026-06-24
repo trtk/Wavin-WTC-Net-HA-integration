@@ -1,7 +1,7 @@
 # Wavin WTC-3 / WTC-NET Home Assistant integráció
 
-[![HACS validation](https://github.com/trtk1992/homeassistant-wavin-wtc3/actions/workflows/hacs.yml/badge.svg)](https://github.com/trtk1992/homeassistant-wavin-wtc3/actions/workflows/hacs.yml)
-[![Hassfest validation](https://github.com/trtk1992/homeassistant-wavin-wtc3/actions/workflows/hassfest.yml/badge.svg)](https://github.com/trtk1992/homeassistant-wavin-wtc3/actions/workflows/hassfest.yml)
+[![HACS validation](https://github.com/trtk/Wavin-WTC-Net-HA-integration/actions/workflows/hacs.yml/badge.svg)](https://github.com/trtk/Wavin-WTC-Net-HA-integration/actions/workflows/hacs.yml)
+[![Hassfest validation](https://github.com/trtk/Wavin-WTC-Net-HA-integration/actions/workflows/hassfest.yml/badge.svg)](https://github.com/trtk/Wavin-WTC-Net-HA-integration/actions/workflows/hassfest.yml)
 
 Natív, UI-ból felvehető Home Assistant custom integration Wavin WTC-3 szabályozóhoz WTC-NET Modbus TCP átjárón keresztül.
 
@@ -36,7 +36,7 @@ Natív, UI-ból felvehető Home Assistant custom integration Wavin WTC-3 szabál
 3. Repository URL:
 
    ```text
-   https://github.com/trtk1992/homeassistant-wavin-wtc3
+   https://github.com/trtk/Wavin-WTC-Net-HA-integration
    ```
 
 4. Category: `Integration`.
