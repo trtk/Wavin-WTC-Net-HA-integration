@@ -1,0 +1,17 @@
+{
+  "domain": "wavin_wtc3",
+  "name": "Wavin WTC-3 / WTC-NET",
+  "codeowners": [
+    "@trtk1992"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/trtk1992/homeassistant-wavin-wtc3",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/trtk1992/homeassistant-wavin-wtc3/issues",
+  "requirements": [
+    "pymodbus>=3.8.0"
+  ],
+  "version": "0.2.0",
+  "integration_type": "hub"
+}

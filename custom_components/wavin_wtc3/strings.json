@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wavin WTC-3 / WTC-NET beállítás",
+        "description": "Add meg a WTC-NET Modbus TCP kapcsolatát és a TH zónákat.",
+        "data": {
+          "name": "Név",
+          "host": "WTC-NET IP-cím vagy hosztnév",
+          "port": "Modbus TCP port",
+          "slave_id": "Modbus slave ID",
+          "zone_count": "Zónák száma",
+          "zone_names": "Zónanevek vesszővel elválasztva",
+          "timeout": "Kapcsolati időtúllépés másodpercben",
+          "address_offset": "Modbus cím eltolás"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nem sikerült csatlakozni vagy olvasni a WTC-3-ból. Ellenőrizd az IP-t, portot, slave ID-t és a cím-eltolást."
+    },
+    "abort": {
+      "already_configured": "Ez a WTC-3 már be van állítva."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Wavin WTC-3 opciók",
+        "data": {
+          "zone_count": "Zónák száma",
+          "zone_names": "Zónanevek vesszővel elválasztva",
+          "timeout": "Kapcsolati időtúllépés másodpercben",
+          "address_offset": "Modbus cím eltolás"
+        }
+      }
+    }
+  }
+}
