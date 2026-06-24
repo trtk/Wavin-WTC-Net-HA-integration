@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.4.1 - 2026-06-25
+
+### Fixed
+
+- Updated all GitHub repository links to `https://github.com/trtk/Wavin-WTC-Net-HA-integration`.
+- Updated README badge links and HACS custom repository URL.
+- Updated manifest documentation and issue tracker URLs.
+
+## 0.4.0 - 2026-06-24
+
+- Version bumped to `0.4.0`.
+- HACS/GitHub release package refreshed.
+
+## 0.2.1
+
+- Fixed HACS validation: removed unsupported `domains` and `iot_class` keys from `hacs.json`.
+- Added local brand assets under `custom_components/wavin_wtc3/brand/`.
+- Updated manifest version to `0.2.1`.
+
 A projekt [Semantic Versioning](https://semver.org/) szerinti verziózást használ: `MAJOR.MINOR.PATCH`.
 
 ## 0.2.0 - 2026-06-24

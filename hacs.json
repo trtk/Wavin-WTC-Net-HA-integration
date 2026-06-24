@@ -1,11 +1,5 @@
 {
   "name": "Wavin WTC-3 / WTC-NET",
   "render_readme": true,
-  "domains": [
-    "climate",
-    "sensor",
-    "switch"
-  ],
-  "homeassistant": "2024.8.0",
-  "iot_class": "Local Polling"
+  "homeassistant": "2024.8.0"
 }

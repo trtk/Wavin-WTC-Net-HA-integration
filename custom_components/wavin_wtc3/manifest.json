@@ -12,6 +12,6 @@
   "requirements": [
     "pymodbus>=3.8.0"
   ],
-  "version": "0.3.0",
+  "version": "0.4.1",
   "integration_type": "hub"
 }
