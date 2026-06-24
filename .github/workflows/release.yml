@@ -1,0 +1,29 @@
+name: GitHub release package
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Build release zip
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build package
+        run: |
+          zip -r wavin_wtc3.zip custom_components hacs.json README.md CHANGELOG.md LICENSE \
+            -x "*/__pycache__/*" "*.pyc"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: wavin_wtc3.zip
+          generate_release_notes: true
