@@ -77,6 +77,25 @@ def _temp(value: int | None) -> float | None:
     return round(_s16(value) / 10, 1)
 
 
+def _setpoint_temp(value: int | None) -> float | None:
+    """Decode WTC-3 room setpoint registers for Home Assistant.
+
+    Field testing showed that WTC-NET returns the writable room setpoint
+    registers 1.0 °C higher than the value shown on the DRT-300/TH room
+    unit. Home Assistant should display and control the room-unit value,
+    therefore the integration compensates the Modbus value here.
+    """
+    decoded = _temp(value)
+    if decoded is None:
+        return None
+    return round(decoded - 1.0, 1)
+
+
+def _setpoint_register_value(temperature: float) -> int:
+    """Encode a Home Assistant room setpoint into the WTC-3 register value."""
+    return int(round((float(temperature) + 1.0) * 10))
+
+
 def _pct(value: int | None) -> float | None:
     if value is None or value in (0xFFFF, 0xFFFE):
         return None
@@ -188,7 +207,7 @@ class WavinWTC3Api:
             raise WavinWTC3Error(f"Bit visszaellenőrzési hiba: {read_addr} != {value}, olvasott: {result.bits[0]}")
 
     async def write_setpoint(self, zone: int, kind: str, temperature: float) -> None:
-        value = int(round(float(temperature) * 10))
+        value = _setpoint_register_value(float(temperature))
         if kind == "cool":
             if not 100 <= value <= 500:
                 raise WavinWTC3Error("A hűtési alapjel 10,0 és 50,0 °C között lehet")
@@ -285,10 +304,10 @@ class WavinWTC3Api:
             z.lux = _raw(zone_regs[zi + 5])
 
             si = (zone - 1) * REG_SETPOINT_STRIDE
-            z.cool_setpoint = _temp(setpoint_regs[si])
-            z.heat_setpoint = _temp(setpoint_regs[si + 1])
-            z.economy_heat_setpoint = _temp(setpoint_regs[si + 2])
-            z.economy_cool_setpoint = _temp(eco_cool_regs[zone - 1])
+            z.cool_setpoint = _setpoint_temp(setpoint_regs[si])
+            z.heat_setpoint = _setpoint_temp(setpoint_regs[si + 1])
+            z.economy_heat_setpoint = _setpoint_temp(setpoint_regs[si + 2])
+            z.economy_cool_setpoint = _setpoint_temp(eco_cool_regs[zone - 1])
             z.wheel_position = _raw(wheel_regs[zone - 1])
 
             bi = (zone - 1) * COIL_ZONE_STATUS_STRIDE

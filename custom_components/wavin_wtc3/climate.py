@@ -40,7 +40,7 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
     """One Wavin DRT-300 / TH zone as a Home Assistant climate entity."""
 
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
-    _attr_target_temperature_step = 0.5
+    _attr_target_temperature_step = 1.0
     _attr_min_temp = 5.0
     _attr_max_temp = 50.0
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.COOL]
@@ -96,14 +96,28 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
             return None
         return PRESET_COMFORT if zone.comfort else PRESET_ECONOMY
 
-    @property
-    def target_temperature(self) -> float | None:
+    def _active_base_setpoint(self) -> float | None:
+        """Return the active reference setpoint stored in WTC-3.
+
+        The DRT-300 room unit wheel is a local room offset.  Home Assistant
+        should show the effective room setpoint, but writes must preserve the
+        current wheel offset so the physical room unit keeps working.
+        """
         zone = self._zone
         if not zone:
             return None
         if zone.cooling:
             return zone.cool_setpoint if zone.comfort else zone.economy_cool_setpoint
         return zone.heat_setpoint if zone.comfort else zone.economy_heat_setpoint
+
+    @property
+    def target_temperature(self) -> float | None:
+        base = self._active_base_setpoint()
+        if base is None:
+            return None
+        zone = self._zone
+        wheel_offset = zone.wheel_offset if zone and zone.wheel_offset is not None else 0.0
+        return round(base + wheel_offset, 1)
 
     @property
     def extra_state_attributes(self):
@@ -116,6 +130,7 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
             "locked": zone.locked,
             "live": zone.live,
             "dewpoint": zone.dewpoint,
+            "drt300_wheel_offset": zone.wheel_offset,
             "wheel_offset": zone.wheel_offset,
             "wheel_position_code": zone.wheel_position,
             "condensation": zone.condensation,
@@ -172,13 +187,18 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
         zone = self._zone
         if not zone:
             raise HomeAssistantError("A zóna állapota még nem ismert")
-        temp = round(float(kwargs[ATTR_TEMPERATURE]) * 2) / 2
+        requested_effective_temp = float(round(float(kwargs[ATTR_TEMPERATURE])))
+        wheel_offset = zone.wheel_offset if zone.wheel_offset is not None else 0.0
+        # Preserve the local DRT-300 wheel offset.  The WTC-3 register stores
+        # the reference/base setpoint, while the room unit applies its wheel
+        # offset locally.  Therefore HA writes base = requested effective - wheel.
+        base_temp = round(requested_effective_temp - wheel_offset, 1)
         if zone.cooling:
             kind = "cool" if zone.comfort else "economy_cool"
         else:
             kind = "heat" if zone.comfort else "economy_heat"
         try:
-            await self._api.write_setpoint(self.zone, kind, temp)
+            await self._api.write_setpoint(self.zone, kind, base_temp)
         except WavinWTC3Error as err:
             raise HomeAssistantError(str(err)) from err
         await self.coordinator.async_request_refresh()

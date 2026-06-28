@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.3 - 2026-06-25
+
+### Fixed
+
+- Climate target temperature now includes the current DRT-300 wheel offset, so a local room-unit adjustment is reflected in Home Assistant.
+- Home Assistant setpoint writes preserve the current DRT-300 wheel offset by writing the WTC-3 base/reference setpoint as `requested target - wheel offset`.
+- Kept whole-degree Home Assistant setpoint steps.
+
+## 0.4.2 - 2026-06-25
+
+### Fixed
+
+- Corrected WTC-NET target temperature display by applying a -1.0 °C compensation when reading room setpoint registers.
+- Setpoint writes now apply the matching +1.0 °C Modbus compensation before writing back to WTC-3.
+
+### Changed
+
+- Climate target temperature step changed from 0.5 °C to 1.0 °C.
+- Requested target temperatures are rounded to whole degrees before writing.
+
 ## 0.4.1 - 2026-06-25
 
 ### Fixed
