@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.4
+
+- Fixed options flow opening on existing integrations in newer Home Assistant versions.
+- Avoid assigning to the read-only `config_entry` property in the options flow, which caused `500 Internal Server Error` when modifying an existing Wavin WTC-3 configuration.
+
 ## 0.4.3 - 2026-06-25
 
 ### Fixed

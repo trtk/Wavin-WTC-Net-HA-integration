@@ -86,8 +86,16 @@ class WavinConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class WavinOptionsFlow(config_entries.OptionsFlow):
     """Options flow for Wavin WTC-3."""
 
-    def __init__(self, config_entry) -> None:
-        self.config_entry = config_entry
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        # Do not assign to self.config_entry. In newer Home Assistant versions
+        # OptionsFlow exposes config_entry as a read-only property, and assigning
+        # to it makes the options flow fail with HTTP 500 when opened.
+        self._wavin_config_entry = config_entry
+
+    @property
+    def _entry(self) -> config_entries.ConfigEntry:
+        """Return the config entry in a way that is compatible with HA versions."""
+        return getattr(self, "config_entry", None) or self._wavin_config_entry
 
     async def async_step_init(self, user_input=None):
         if user_input is not None:
@@ -95,7 +103,7 @@ class WavinOptionsFlow(config_entries.OptionsFlow):
             user_input[CONF_ZONE_NAMES] = _parse_zone_names(user_input.get(CONF_ZONE_NAMES, ""), zone_count)
             return self.async_create_entry(title="", data=user_input)
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = {**self._entry.data, **self._entry.options}
         zone_names = current.get(CONF_ZONE_NAMES) or [f"TH{i}" for i in range(1, current.get(CONF_ZONE_COUNT, 7) + 1)]
         if isinstance(zone_names, list):
             zone_names_value = ", ".join(zone_names)
