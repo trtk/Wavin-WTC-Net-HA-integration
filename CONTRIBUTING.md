@@ -5,7 +5,7 @@
 - Minden változást külön branch-ben készíts.
 - A manifest verzióját minden release előtt frissíteni kell: `custom_components/wavin_wtc3/manifest.json` → `version`.
 - A változásokat rögzíteni kell a `CHANGELOG.md` fájlban.
-- Release tag formátum: `vMAJOR.MINOR.PATCH`, például `v0.4.0`.
+- Release tag formátum: `vMAJOR.MINOR.PATCH`, például `v1.0.0`.
 
 ## Ellenőrzések
 

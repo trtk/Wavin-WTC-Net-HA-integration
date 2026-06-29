@@ -1,22 +1,15 @@
-# Changelog
-<<<<<<< HEAD
-## [0.4.8] - DRT-300 lock verification fix
-=======
-## [0.4.7] - Target read-back refresh after DRT-300 wheel change
->>>>>>> 11fb7052d73b8d9cb0d25da5001fa2a816ca05e4
+## [1.0.0] - Stable release
 
-<<<<<<< HEAD
+- Stable 1.0 release based on the verified v0.4.8 functionality.
+- Version bumped to `1.0.0`.
+
+# Changelog
+## [0.4.8] - DRT-300 lock verification fix
+
 ### Fixed
 - DRT-300 thermostat lock/unlock commands no longer fail in Home Assistant when the WTC-NET read-back bit still shows the previous value immediately after a successful write.
 - Lock state is refreshed through the normal coordinator read-back instead of treating the immediate 4186..4192 status bit mismatch as a hard error.
-=======
-### Changed
-- After a Home Assistant target temperature change, the integration still debounces rapid changes for 3 seconds and writes only the final value.
-- After writing the DRT-300 wheel position, the integration waits another 3 seconds and then forces an immediate Home Assistant refresh outside the normal 30 second polling cycle.
-- This makes the displayed target temperature update from the read-back wheel/potmeter value instead of waiting for the next scheduled poll.
->>>>>>> 11fb7052d73b8d9cb0d25da5001fa2a816ca05e4
 
-<<<<<<< HEAD
 ## [0.4.8] - Target read-back refresh after DRT-300 wheel change
 
 ### Changed
@@ -27,11 +20,6 @@
 
 ## v0.4.8
 
-=======
-
-## v0.4.7
-
->>>>>>> 11fb7052d73b8d9cb0d25da5001fa2a816ca05e4
 - Javítva: a DRT-300 potméter állítás most a 4604–4610 wheel pozíció regiszterekbe 0..12 kódot ír.
 - A climate target hőmérséklet kijelzése a kiolvasott potméter/wheel pozíció alapján történik.
 - Hőmérséklet módosításnál 3 másodperces debounce került be; gyors egymás utáni módosításoknál csak a végső érték kerül kiírásra.
