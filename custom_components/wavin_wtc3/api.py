@@ -227,12 +227,19 @@ class WavinWTC3Api:
         if verify and int(result.registers[0]) != int(value):
             raise WavinWTC3Error(f"Visszaellenőrzési hiba: {address} != {value}, olvasott: {result.registers[0]}")
 
-    async def write_coil(self, address: int, value: bool, verify_address: int | None = None) -> None:
+    async def write_coil(
+        self,
+        address: int,
+        value: bool,
+        verify_address: int | None = None,
+        verify: bool = True,
+    ) -> None:
         read_addr = address if verify_address is None else verify_address
         async with self._lock:
             await self._call("write_coil", self._addr(address), bool(value))
-            result = await self._call("read_coils", self._addr(read_addr), count=1)
-        if bool(result.bits[0]) != bool(value):
+            if verify:
+                result = await self._call("read_coils", self._addr(read_addr), count=1)
+        if verify and bool(result.bits[0]) != bool(value):
             raise WavinWTC3Error(f"Bit visszaellenőrzési hiba: {read_addr} != {value}, olvasott: {result.bits[0]}")
 
     async def write_setpoint(self, zone: int, kind: str, temperature: float) -> None:
@@ -286,7 +293,16 @@ class WavinWTC3Api:
                               verify_address=COIL_ZONE_STATUS_BASE + (zone - 1) * COIL_ZONE_STATUS_STRIDE + 6)
 
     async def set_zone_locked(self, zone: int, value: bool) -> None:
-        await self.write_coil(COIL_LOCK_WRITE_BASE + zone - 1, value, verify_address=COIL_LOCK_READ_BASE + zone - 1)
+        """Lock or unlock a DRT-300 room unit.
+
+        The WTC-NET applies the lock command, but the 4186..4192 read-back
+        status bits can lag behind or report the previous state immediately
+        after writing.  Earlier versions treated that immediate mismatch as a
+        hard error, even though the physical lock/unlock action succeeded.
+        For lock commands we therefore write the command without immediate
+        bit verification and let the coordinator refresh read the actual state.
+        """
+        await self.write_coil(COIL_LOCK_WRITE_BASE + zone - 1, value, verify_address=None, verify=False)
 
     async def set_global_on(self, value: bool) -> None:
         await self.write_coil(COIL_GLOBAL_ONOFF, value)
