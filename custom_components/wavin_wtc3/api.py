@@ -96,6 +96,26 @@ def _setpoint_register_value(temperature: float) -> int:
     return int(round((float(temperature) + 1.0) * 10))
 
 
+def _signed_tenths_register_value(value: float) -> int:
+    """Encode a signed 0.1 unit value into a 16-bit Modbus register."""
+    raw = int(round(float(value) * 10))
+    return raw & 0xFFFF
+
+
+def _decode_wheel_position_words(words: list[int], zone: int) -> int | None:
+    """Decode packed DRT-300 wheel position codes from registers 4600..4603.
+
+    The manual exposes read-only wheel position codes packed as low/high bytes:
+    4600 = TH1/TH2, 4601 = TH3/TH4, 4602 = TH5/TH6, 4603 low byte = TH7.
+    """
+    idx = int(zone) - 1
+    word_index = idx // 2
+    if word_index >= len(words):
+        return None
+    word = int(words[word_index])
+    return (word & 0xFF) if idx % 2 == 0 else ((word >> 8) & 0xFF)
+
+
 def _pct(value: int | None) -> float | None:
     if value is None or value in (0xFFFF, 0xFFFE):
         return None
@@ -228,6 +248,23 @@ class WavinWTC3Api:
             raise WavinWTC3Error(f"Ismeretlen alapjel típus: {kind}")
         await self.write_register(address, value, verify=True)
 
+    async def write_wheel_offset(self, zone: int, offset: float) -> None:
+        """Write the DRT-300 virtual potentiometer offset for a zone.
+
+        Home Assistant temperature changes should behave like turning the room
+        unit wheel, not like rewriting the WTC-3 program/reference setpoints.
+        The DRT-300 offset is signed and uses 0.1 °C units.  The default Wavin
+        room-unit adjustment range is +/- 6 °C, so we clamp to that range.
+        """
+        offset = max(WHEEL_OFFSET_MIN, min(WHEEL_OFFSET_MAX, round(float(offset), 1)))
+        value = _signed_tenths_register_value(offset)
+        address = REG_WHEEL_WRITE_BASE + zone - 1
+        # Do not verify against the write address: on WTC-NET this virtual
+        # potentiometer write may not echo immediately at the write register.
+        # The next poll confirms the result through the read-only THx potmeter
+        # register at 4139 + zone stride.
+        await self.write_register(address, value, verify=False)
+
     async def set_zone_on(self, zone: int, value: bool) -> None:
         await self.write_coil(COIL_ZONE_WRITE_BASE + (zone - 1) * COIL_ZONE_WRITE_STRIDE, value,
                               verify_address=COIL_ZONE_STATUS_BASE + (zone - 1) * COIL_ZONE_STATUS_STRIDE + 4)
@@ -271,7 +308,7 @@ class WavinWTC3Api:
 
         zone_regs = await self.read_holding_chunked(REG_ZONE_BASE, REG_ZONE_STRIDE * zone_count)
         setpoint_regs = await self.read_holding_chunked(REG_SETPOINT_BASE, REG_SETPOINT_STRIDE * zone_count)
-        wheel_regs = await self.read_holding_chunked(REG_WHEEL_WRITE_BASE, zone_count)
+        wheel_position_regs = await self.read_holding_chunked(REG_WHEEL_POSITION_BASE, 4)
         eco_cool_regs = await self.read_holding_chunked(REG_ECO_COOL_BASE, zone_count)
 
         try:
@@ -308,7 +345,7 @@ class WavinWTC3Api:
             z.heat_setpoint = _setpoint_temp(setpoint_regs[si + 1])
             z.economy_heat_setpoint = _setpoint_temp(setpoint_regs[si + 2])
             z.economy_cool_setpoint = _setpoint_temp(eco_cool_regs[zone - 1])
-            z.wheel_position = _raw(wheel_regs[zone - 1])
+            z.wheel_position = _decode_wheel_position_words(wheel_position_regs, zone)
 
             bi = (zone - 1) * COIL_ZONE_STATUS_STRIDE
             z.dry = status_bits[bi]
