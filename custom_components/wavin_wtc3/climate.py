@@ -233,7 +233,14 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
             wheel_offset = self._pending_wheel_offset
             if wheel_offset is None:
                 return
+            # Write the final value after the debounce window, then give
+            # WTC-3/WTC-NET a short settling time before reading the wheel
+            # position back. Without this extra read-back delay the next HA
+            # state update may still contain the old potentiometer code and
+            # the target temperature can appear to jump back until the normal
+            # 30 second poll cycle.
             await self._api.write_wheel_offset(self.zone, wheel_offset)
+            await asyncio.sleep(3)
             await self.coordinator.async_request_refresh()
         except asyncio.CancelledError:
             raise

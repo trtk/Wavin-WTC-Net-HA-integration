@@ -1,6 +1,13 @@
 # Changelog
+## [0.4.7] - Target read-back refresh after DRT-300 wheel change
 
-## v0.4.6
+### Changed
+- After a Home Assistant target temperature change, the integration still debounces rapid changes for 3 seconds and writes only the final value.
+- After writing the DRT-300 wheel position, the integration waits another 3 seconds and then forces an immediate Home Assistant refresh outside the normal 30 second polling cycle.
+- This makes the displayed target temperature update from the read-back wheel/potmeter value instead of waiting for the next scheduled poll.
+
+
+## v0.4.7
 
 - Javítva: a DRT-300 potméter állítás most a 4604–4610 wheel pozíció regiszterekbe 0..12 kódot ír.
 - A climate target hőmérséklet kijelzése a kiolvasott potméter/wheel pozíció alapján történik.
