@@ -1,6 +1,7 @@
 """Climate entities for Wavin WTC-3 zones."""
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from homeassistant.components.climate import ClimateEntity
@@ -61,6 +62,9 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
         super().__init__(coordinator, entry, stored, f"zone_{zone}_climate", zone=zone, zone_name=name)
         self.zone = zone
         self._attr_name = None
+        self._pending_target_temperature: float | None = None
+        self._pending_wheel_offset: float | None = None
+        self._debounce_task: asyncio.Task | None = None
 
     @property
     def _api(self) -> WavinWTC3Api:
@@ -121,12 +125,17 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
 
     @property
     def target_temperature(self) -> float | None:
+        # During the 3 second debounce window, reflect the final requested
+        # value in HA immediately. After the write and refresh, the displayed
+        # value comes from the DRT-300 wheel position read back from WTC-3.
+        if self._pending_target_temperature is not None:
+            return self._pending_target_temperature
         reference = self._active_reference_temperature()
         if reference is None:
             return None
         zone = self._zone
         wheel_offset = zone.wheel_offset if zone and zone.wheel_offset is not None else 0.0
-        return round(reference + wheel_offset, 1)
+        return float(round(reference + wheel_offset))
 
     @property
     def extra_state_attributes(self):
@@ -142,6 +151,7 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
             "drt300_reference_temperature": self._active_reference_temperature(),
             "drt300_wheel_offset": zone.wheel_offset,
             "wheel_offset": zone.wheel_offset,
+            "pending_wheel_offset": self._pending_wheel_offset,
             "wheel_offset_min": WHEEL_OFFSET_MIN,
             "wheel_offset_max": WHEEL_OFFSET_MAX,
             "wheel_position_code": zone.wheel_position,
@@ -203,14 +213,40 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
         reference = self._active_reference_temperature()
         if reference is None:
             raise HomeAssistantError("A DRT-300 referencia-hőmérséklet még nem ismert")
-        wheel_offset = round(requested_effective_temp - reference, 1)
+        wheel_offset = float(round(requested_effective_temp - reference))
         if wheel_offset < WHEEL_OFFSET_MIN or wheel_offset > WHEEL_OFFSET_MAX:
             raise HomeAssistantError(
                 f"A DRT-300 potméter tartománya {WHEEL_OFFSET_MIN:+.0f} … {WHEEL_OFFSET_MAX:+.0f} °C; "
-                f"a kért {requested_effective_temp:.0f} °C ehhez képest {wheel_offset:+.1f} °C lenne."
+                f"a kért {requested_effective_temp:.0f} °C ehhez képest {wheel_offset:+.0f} °C lenne."
             )
+
+        self._pending_target_temperature = requested_effective_temp
+        self._pending_wheel_offset = wheel_offset
+        if self._debounce_task is not None:
+            self._debounce_task.cancel()
+        self._debounce_task = asyncio.create_task(self._async_debounced_write_wheel())
+        self.async_write_ha_state()
+
+    async def _async_debounced_write_wheel(self) -> None:
         try:
+            await asyncio.sleep(3)
+            wheel_offset = self._pending_wheel_offset
+            if wheel_offset is None:
+                return
             await self._api.write_wheel_offset(self.zone, wheel_offset)
+            await self.coordinator.async_request_refresh()
+        except asyncio.CancelledError:
+            raise
         except WavinWTC3Error as err:
-            raise HomeAssistantError(str(err)) from err
-        await self.coordinator.async_request_refresh()
+            _LOGGER.error("DRT-300 potméter írási hiba TH%s: %s", self.zone, err)
+        finally:
+            if asyncio.current_task() is self._debounce_task:
+                self._pending_target_temperature = None
+                self._pending_wheel_offset = None
+                self._debounce_task = None
+                self.async_write_ha_state()
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._debounce_task is not None:
+            self._debounce_task.cancel()
+            self._debounce_task = None

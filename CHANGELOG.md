@@ -1,11 +1,11 @@
 # Changelog
 
-## v0.4.5
+## v0.4.6
 
-- Home Assistant célhőmérséklet állítása DRT-300 potméter/wheel eltoláson keresztül.
-- Hűtési üzemben a DRT-300 középérték 24 °C.
-- A direkt WTC-3 célhőmérséklet-alapjel írása kikerült a climate entity-ből.
-
+- Javítva: a DRT-300 potméter állítás most a 4604–4610 wheel pozíció regiszterekbe 0..12 kódot ír.
+- A climate target hőmérséklet kijelzése a kiolvasott potméter/wheel pozíció alapján történik.
+- Hőmérséklet módosításnál 3 másodperces debounce került be; gyors egymás utáni módosításoknál csak a végső érték kerül kiírásra.
+- A hűtési középérték továbbra is 24 °C, fűtési középérték 21 °C.
 
 ## 0.4.4
 

@@ -96,10 +96,19 @@ def _setpoint_register_value(temperature: float) -> int:
     return int(round((float(temperature) + 1.0) * 10))
 
 
-def _signed_tenths_register_value(value: float) -> int:
-    """Encode a signed 0.1 unit value into a 16-bit Modbus register."""
-    raw = int(round(float(value) * 10))
-    return raw & 0xFFFF
+def _wheel_offset_from_position(position: int | None) -> float | None:
+    """Convert DRT-300 wheel position 0..12 to a signed +/-6 °C offset."""
+    if position is None:
+        return None
+    position = int(position)
+    if position < 0 or position > 12:
+        return None
+    return float(position - 6)
+
+
+def _wheel_position_from_offset(offset: float) -> int:
+    """Convert signed +/-6 °C offset to DRT-300 wheel position 0..12."""
+    return max(0, min(12, int(round(float(offset) + 6))))
 
 
 def _decode_wheel_position_words(words: list[int], zone: int) -> int | None:
@@ -256,13 +265,12 @@ class WavinWTC3Api:
         The DRT-300 offset is signed and uses 0.1 °C units.  The default Wavin
         room-unit adjustment range is +/- 6 °C, so we clamp to that range.
         """
-        offset = max(WHEEL_OFFSET_MIN, min(WHEEL_OFFSET_MAX, round(float(offset), 1)))
-        value = _signed_tenths_register_value(offset)
+        offset = max(WHEEL_OFFSET_MIN, min(WHEEL_OFFSET_MAX, round(float(offset))))
+        value = _wheel_position_from_offset(offset)
         address = REG_WHEEL_WRITE_BASE + zone - 1
-        # Do not verify against the write address: on WTC-NET this virtual
-        # potentiometer write may not echo immediately at the write register.
-        # The next poll confirms the result through the read-only THx potmeter
-        # register at 4139 + zone stride.
+        # The writable DRT-300 wheel registers are 4604..4610 and expect
+        # the physical wheel position code, not a signed 0.1 °C value:
+        # 0 = far left (-6 °C), 6 = centre (0 °C), 12 = far right (+6 °C).
         await self.write_register(address, value, verify=False)
 
     async def set_zone_on(self, zone: int, value: bool) -> None:
@@ -346,6 +354,9 @@ class WavinWTC3Api:
             z.economy_heat_setpoint = _setpoint_temp(setpoint_regs[si + 2])
             z.economy_cool_setpoint = _setpoint_temp(eco_cool_regs[zone - 1])
             z.wheel_position = _decode_wheel_position_words(wheel_position_regs, zone)
+            wheel_position_offset = _wheel_offset_from_position(z.wheel_position)
+            if wheel_position_offset is not None:
+                z.wheel_offset = wheel_position_offset
 
             bi = (zone - 1) * COIL_ZONE_STATUS_STRIDE
             z.dry = status_bits[bi]
