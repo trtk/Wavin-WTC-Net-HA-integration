@@ -346,6 +346,23 @@ class WavinWTC3Api:
         global_bits = await self.read_coils_chunked(COIL_GLOBAL_ONOFF, 3)
         state.global_on, state.global_comfort, state.global_cooling = global_bits
 
+        if state.global_cooling:
+            for zone in range(1, zone_count + 1):
+                si = (zone - 1) * REG_SETPOINT_STRIDE
+                current_raw = setpoint_regs[si]
+                if current_raw in (0xFFFF, 0xFFFE):
+                    continue  # invalid/fault reading, do not overwrite
+                if current_raw != FORCED_COOLING_SETPOINT_RAW:
+                    address = REG_SETPOINT_BASE + si
+                    try:
+                        await self.write_register(address, FORCED_COOLING_SETPOINT_RAW, verify=True)
+                        setpoint_regs[si] = FORCED_COOLING_SETPOINT_RAW
+                    except WavinWTC3Error as err:
+                        _LOGGER.warning(
+                            "Nem sikerült a %d. zóna hűtési alapjelét 24 °C-ra állítani: %s",
+                            zone, err,
+                        )
+
         status_bits = await self.read_coils_chunked(COIL_ZONE_STATUS_BASE, COIL_ZONE_STATUS_STRIDE * zone_count)
         lock_bits = await self.read_coils_chunked(COIL_LOCK_READ_BASE, zone_count)
         fault_bits = await self.read_coils_chunked(COIL_HEAT_OUT, 7)
