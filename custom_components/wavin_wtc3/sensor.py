@@ -61,12 +61,13 @@ ZONE_SENSORS = [
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    stored = hass.data[DOMAIN][entry.entry_id]
-    coordinator = stored["coordinator"]
-    entities = [WavinSystemSensor(coordinator, entry, stored, desc) for desc in SYSTEM_SENSORS]
-    for zone in range(1, stored["zone_count"] + 1):
-        for desc in ZONE_SENSORS:
-            entities.append(WavinZoneSensor(coordinator, entry, stored, zone, stored["zone_names"][zone - 1], desc))
+    entities = []
+    for stored in hass.data[DOMAIN][entry.entry_id]["units"]:
+        coordinator = stored["coordinator"]
+        entities.extend(WavinSystemSensor(coordinator, entry, stored, desc) for desc in SYSTEM_SENSORS)
+        for zone in range(1, stored["zone_count"] + 1):
+            for desc in ZONE_SENSORS:
+                entities.append(WavinZoneSensor(coordinator, entry, stored, zone, stored["zone_names"][zone - 1], desc))
     async_add_entities(entities)
 
 
@@ -86,7 +87,8 @@ class WavinSystemSensor(WavinEntity, SensorEntity):
 
     @property
     def native_value(self):
-        return self.desc.value_fn(self.coordinator.data)
+        data = self.coordinator.data
+        return self.desc.value_fn(data) if data else None
 
 
 class WavinZoneSensor(WavinEntity, SensorEntity):
@@ -106,5 +108,6 @@ class WavinZoneSensor(WavinEntity, SensorEntity):
 
     @property
     def native_value(self):
-        zone = self.coordinator.data.zones.get(self.zone)
+        data = self.coordinator.data
+        zone = data.zones.get(self.zone) if data else None
         return self.desc.value_fn(zone) if zone else None

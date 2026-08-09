@@ -10,11 +10,11 @@ from .entity import WavinEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    stored = hass.data[DOMAIN][entry.entry_id]
-    coordinator = stored["coordinator"]
     entities = []
-    for zone in range(1, stored["zone_count"] + 1):
-        entities.append(WavinZoneLockSwitch(coordinator, entry, stored, zone, stored["zone_names"][zone - 1]))
+    for stored in hass.data[DOMAIN][entry.entry_id]["units"]:
+        coordinator = stored["coordinator"]
+        for zone in range(1, stored["zone_count"] + 1):
+            entities.append(WavinZoneLockSwitch(coordinator, entry, stored, zone, stored["zone_names"][zone - 1]))
     async_add_entities(entities)
 
 
@@ -33,7 +33,8 @@ class WavinZoneLockSwitch(WavinEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool | None:
-        zone = self.coordinator.data.zones.get(self.zone)
+        data = self.coordinator.data
+        zone = data.zones.get(self.zone) if data else None
         return zone.locked if zone else None
 
     async def async_turn_on(self, **kwargs) -> None:

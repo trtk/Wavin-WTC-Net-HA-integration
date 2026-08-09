@@ -38,12 +38,13 @@ def _climate_features():
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    stored = hass.data[DOMAIN][entry.entry_id]
-    coordinator = stored["coordinator"]
-    entities = [
-        WavinZoneClimate(coordinator, entry, stored, zone, stored["zone_names"][zone - 1])
-        for zone in range(1, stored["zone_count"] + 1)
-    ]
+    entities = []
+    for stored in hass.data[DOMAIN][entry.entry_id]["units"]:
+        coordinator = stored["coordinator"]
+        entities.extend(
+            WavinZoneClimate(coordinator, entry, stored, zone, stored["zone_names"][zone - 1])
+            for zone in range(1, stored["zone_count"] + 1)
+        )
     async_add_entities(entities)
 
 
@@ -72,7 +73,8 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
 
     @property
     def _zone(self):
-        return self.coordinator.data.zones.get(self.zone)
+        data = self.coordinator.data
+        return data.zones.get(self.zone) if data else None
 
     @property
     def available(self) -> bool:
