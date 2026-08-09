@@ -63,6 +63,11 @@ REG_ECO_COOL_BASE = 4700
 # cycle (240 = 24.0 °C in the WTC-3's native, uncalibrated units - see
 # _setpoint_temp/_setpoint_register_value for the display calibration).
 FORCED_COOLING_SETPOINT_RAW = 240
+# While the system is in cooling mode (COIL_GLOBAL_HC), the integration forces
+# the raw per-zone cooling setpoint registers to this value on every read
+# cycle (240 = 24.0 °C in the WTC-3's native, uncalibrated units - see
+# _setpoint_temp/_setpoint_register_value for the display calibration).
+FORCED_COOLING_SETPOINT_RAW = 240
 REG_WHEEL_POSITION_BASE = 4600
 REG_WHEEL_WRITE_BASE = 4604
 REG_RH_SETPOINT = 4707
