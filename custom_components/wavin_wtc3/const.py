@@ -58,23 +58,19 @@ REG_SETPOINT_BASE = 4178
 REG_SETPOINT_STRIDE = 3
 REG_ECO_COOL_BASE = 4700
 
-# While the system is in cooling mode (COIL_GLOBAL_HC), the integration forces
-# the raw per-zone cooling setpoint registers to this value on every read
-# cycle (240 = 24.0 °C in the WTC-3's native, uncalibrated units - see
-# _setpoint_temp/_setpoint_register_value for the display calibration).
+# Fixed comfort/reference setpoints enforced by the integration.
+# Cooling keeps the already verified raw value used by previous releases.
+# Heating uses the same +1.0 °C WTC-NET setpoint calibration as
+# _setpoint_register_value(): 25.0 °C on the DRT-300 is raw 260.
 FORCED_COOLING_SETPOINT_RAW = 240
-# While the system is in cooling mode (COIL_GLOBAL_HC), the integration forces
-# the raw per-zone cooling setpoint registers to this value on every read
-# cycle (240 = 24.0 °C in the WTC-3's native, uncalibrated units - see
-# _setpoint_temp/_setpoint_register_value for the display calibration).
-FORCED_COOLING_SETPOINT_RAW = 240
+FORCED_HEATING_SETPOINT_RAW = 260
 REG_WHEEL_POSITION_BASE = 4600
 REG_WHEEL_WRITE_BASE = 4604
 REG_RH_SETPOINT = 4707
 
 # DRT-300 reference temperatures and local wheel range.
 # The user installation uses 24 °C as cooling centre/middle point.
-DRT300_HEAT_CENTER_TEMP = 21.0
+DRT300_HEAT_CENTER_TEMP = 25.0
 DRT300_COOL_CENTER_TEMP = 24.0
 DRT300_ECONOMY_HEAT_CENTER_TEMP = 17.0
 DRT300_ECONOMY_COOL_CENTER_TEMP = 24.0

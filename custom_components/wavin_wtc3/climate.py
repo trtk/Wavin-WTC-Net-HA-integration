@@ -114,7 +114,8 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
         """Return the DRT-300 middle/reference temperature used by HA.
 
         HA temperature changes are mapped to the DRT-300 wheel/potmeter.
-        Cooling mode uses 24 °C as the middle point in this installation.
+        Cooling uses 24 °C and heating uses 25 °C as the middle point.
+        Economy references are not forced by the integration.
         """
         zone = self._zone
         if not zone:

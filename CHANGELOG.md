@@ -1,9 +1,21 @@
+# Changelog
+
+## [1.0.1] - 2026-09-30
+
+### Fixed
+- Heating comfort/reference setpoint is now continuously kept at 25.0 °C for every configured TH zone while the WTC-3 is in heating mode.
+- Home Assistant heating target changes now use 25 °C as the DRT-300 wheel centre, so 25 °C = centre, 24 °C = -1 and 26 °C = +1.
+- Removed the duplicated cooling setpoint enforcement block and duplicated cooling constant.
+
+### Unchanged
+- Cooling keeps the existing fixed-reference/wheel behaviour.
+- Economy setpoints are not forced or modified.
+
 ## [1.0.0] - Stable release
 
 - Stable 1.0 release based on the verified v0.4.8 functionality.
 - Version bumped to `1.0.0`.
 
-# Changelog
 ## [0.4.8] - DRT-300 lock verification fix
 
 ### Fixed
