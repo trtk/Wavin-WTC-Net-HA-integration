@@ -142,11 +142,13 @@ The HACS manifest is intentionally minimal. The integration platforms and `iot_c
 
 ### DRT-300 wheel handling
 
-The integration treats the DRT-300 wheel as a live local room offset. The climate target shown in Home Assistant is the effective target: WTC-3 base/reference setpoint plus the current DRT-300 wheel offset. When Home Assistant writes a new target, the integration preserves the room-unit wheel by writing the adjusted base/reference setpoint back to WTC-3.
+The integration treats the DRT-300 wheel as a live local room offset. In comfort mode the heating reference is kept at 25 °C and the existing cooling reference behaviour is kept at 24 °C. Home Assistant target changes move the DRT-300 wheel instead of changing these comfort/reference setpoints. Economy setpoints are currently left untouched.
 
 
 ## v0.4.8
 
 - A Home Assistant célhőmérséklet állítása már nem a WTC-3 direkt alapjel-regisztereit írja, hanem a DRT-300 potméter/wheel eltolást.
 - Hűtés módban a potméter középértéke 24 °C.
+- Fűtés módban a potméter középértéke 25 °C; az integráció a fűtési comfort alapjelet 25 °C-on tartja.
+- Economy alapjeleket az integráció nem kényszerít és nem módosít.
 - A mért aktuális hőmérséklet kezelése változatlan maradt.

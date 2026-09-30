@@ -12,17 +12,6 @@ CONF_SCAN_INTERVAL = "scan_interval"
 CONF_ADDRESS_OFFSET = "address_offset"
 CONF_TIMEOUT = "timeout"
 
-# Multiple WTC-3 units can be daisy-chained on the same RS-485 bus behind one
-# WTC-NET gateway, in a master/slave setup (each with its own DIP-switch
-# Modbus slave ID). CONF_HOST/PORT/TIMEOUT/ADDRESS_OFFSET and the existing
-# CONF_SLAVE_ID/CONF_ZONE_COUNT/CONF_ZONE_NAMES keys always describe unit 1
-# (the master), so a single-unit config entry is unaffected. Units 2..N are
-# described by CONF_EXTRA_UNITS, a list of dicts each using CONF_SLAVE_ID/
-# CONF_ZONE_COUNT/CONF_ZONE_NAMES/CONF_UNIT_NAME as keys.
-CONF_UNIT_COUNT = "unit_count"
-CONF_EXTRA_UNITS = "extra_units"
-CONF_UNIT_NAME = "unit_name"
-
 DEFAULT_NAME = "Wavin WTC-3"
 DEFAULT_PORT = 502
 DEFAULT_SLAVE_ID = 1
@@ -30,10 +19,6 @@ DEFAULT_ZONE_COUNT = 7
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_TIMEOUT = 5
 DEFAULT_ADDRESS_OFFSET = 0
-DEFAULT_UNIT_COUNT = 1
-
-MAX_EXTRA_UNITS = 3
-MAX_WTC_UNITS = MAX_EXTRA_UNITS + 1
 
 # The user requested a fixed 30 second polling cycle for every value.
 POLL_INTERVAL_SECONDS = 30
@@ -73,18 +58,19 @@ REG_SETPOINT_BASE = 4178
 REG_SETPOINT_STRIDE = 3
 REG_ECO_COOL_BASE = 4700
 
-# While the system is in cooling mode (COIL_GLOBAL_HC), the integration forces
-# the raw per-zone cooling setpoint registers to this value on every read
-# cycle (240 = 24.0 °C in the WTC-3's native, uncalibrated units - see
-# _setpoint_temp/_setpoint_register_value for the display calibration).
+# Fixed comfort/reference setpoints enforced by the integration.
+# Cooling keeps the already verified raw value used by previous releases.
+# Heating uses the same +1.0 °C WTC-NET setpoint calibration as
+# _setpoint_register_value(): 25.0 °C on the DRT-300 is raw 260.
 FORCED_COOLING_SETPOINT_RAW = 240
+FORCED_HEATING_SETPOINT_RAW = 260
 REG_WHEEL_POSITION_BASE = 4600
 REG_WHEEL_WRITE_BASE = 4604
 REG_RH_SETPOINT = 4707
 
 # DRT-300 reference temperatures and local wheel range.
 # The user installation uses 24 °C as cooling centre/middle point.
-DRT300_HEAT_CENTER_TEMP = 21.0
+DRT300_HEAT_CENTER_TEMP = 25.0
 DRT300_COOL_CENTER_TEMP = 24.0
 DRT300_ECONOMY_HEAT_CENTER_TEMP = 17.0
 DRT300_ECONOMY_COOL_CENTER_TEMP = 24.0

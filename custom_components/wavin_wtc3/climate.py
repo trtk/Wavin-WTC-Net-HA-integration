@@ -38,13 +38,12 @@ def _climate_features():
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    entities = []
-    for stored in hass.data[DOMAIN][entry.entry_id]["units"]:
-        coordinator = stored["coordinator"]
-        entities.extend(
-            WavinZoneClimate(coordinator, entry, stored, zone, stored["zone_names"][zone - 1])
-            for zone in range(1, stored["zone_count"] + 1)
-        )
+    stored = hass.data[DOMAIN][entry.entry_id]
+    coordinator = stored["coordinator"]
+    entities = [
+        WavinZoneClimate(coordinator, entry, stored, zone, stored["zone_names"][zone - 1])
+        for zone in range(1, stored["zone_count"] + 1)
+    ]
     async_add_entities(entities)
 
 
@@ -73,8 +72,7 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
 
     @property
     def _zone(self):
-        data = self.coordinator.data
-        return data.zones.get(self.zone) if data else None
+        return self.coordinator.data.zones.get(self.zone)
 
     @property
     def available(self) -> bool:
@@ -116,7 +114,8 @@ class WavinZoneClimate(WavinEntity, ClimateEntity):
         """Return the DRT-300 middle/reference temperature used by HA.
 
         HA temperature changes are mapped to the DRT-300 wheel/potmeter.
-        Cooling mode uses 24 °C as the middle point in this installation.
+        Cooling uses 24 °C and heating uses 25 °C as the middle point.
+        Economy references are not forced by the integration.
         """
         zone = self._zone
         if not zone:

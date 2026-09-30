@@ -22,28 +22,10 @@ class WavinEntity(CoordinatorEntity):
         self.entry = entry
         self.stored = stored
         self.zone_device = zone
-        # unit_index 1 is the master/only WTC-3 in a config entry. Its
-        # unique_id and device identifiers are kept exactly as before
-        # multi-unit support existed, so existing single-unit installs keep
-        # their entity_id, device and area assignments unchanged. Extra units
-        # (2..N, added for master/slave setups) get namespaced identifiers so
-        # they cannot collide with the master or with each other.
-        unit_index = stored.get("unit_index", 1)
-        is_master_unit = unit_index == 1
+        self._attr_unique_id = f"{entry.entry_id}_{suffix}"
 
         host = entry.data.get("host")
-
-        if is_master_unit:
-            self._attr_unique_id = f"{entry.entry_id}_{suffix}"
-            system_identifier = (DOMAIN, entry.entry_id)
-            zone_identifier = (DOMAIN, entry.entry_id, f"th{zone}") if zone is not None else None
-            zone_device_name = zone_name or f"TH{zone}"
-        else:
-            self._attr_unique_id = f"{entry.entry_id}_u{unit_index}_{suffix}"
-            system_identifier = (DOMAIN, entry.entry_id, f"unit{unit_index}")
-            zone_identifier = (DOMAIN, entry.entry_id, f"unit{unit_index}_th{zone}") if zone is not None else None
-            unit_name = stored.get("name") or f"Wavin WTC-3 #{unit_index}"
-            zone_device_name = f"{unit_name} {zone_name or f'TH{zone}'}"
+        system_identifier = (DOMAIN, entry.entry_id)
 
         if zone is None:
             self._attr_device_info = DeviceInfo(
@@ -55,8 +37,8 @@ class WavinEntity(CoordinatorEntity):
             )
         else:
             self._attr_device_info = DeviceInfo(
-                identifiers={zone_identifier},
-                name=zone_device_name,
+                identifiers={(DOMAIN, entry.entry_id, f"th{zone}")},
+                name=zone_name or f"TH{zone}",
                 manufacturer="Wavin",
                 model=f"DRT-300 / TH{zone}",
                 via_device=system_identifier,
