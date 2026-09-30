@@ -60,10 +60,12 @@ REG_ECO_COOL_BASE = 4700
 
 # Fixed comfort/reference setpoints enforced by the integration.
 # Cooling keeps the already verified raw value used by previous releases.
-# Heating uses the same +1.0 °C WTC-NET setpoint calibration as
-# _setpoint_register_value(): 25.0 °C on the DRT-300 is raw 260.
+# Heating is intentionally raw 250: field verification on the physical DRT-300
+# showed that raw 260 displays 26 °C at the centre position. The older generic
+# +1.0 °C setpoint compensation must therefore not be applied to this forced
+# heating reference.
 FORCED_COOLING_SETPOINT_RAW = 240
-FORCED_HEATING_SETPOINT_RAW = 260
+FORCED_HEATING_SETPOINT_RAW = 250
 REG_WHEEL_POSITION_BASE = 4600
 REG_WHEEL_WRITE_BASE = 4604
 REG_RH_SETPOINT = 4707

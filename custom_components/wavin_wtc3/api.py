@@ -348,7 +348,7 @@ class WavinWTC3Api:
         # Keep the active comfort/reference setpoint fixed and use only the
         # DRT-300 wheel for room target changes. Economy setpoints are left
         # untouched. Cooling retains the previously verified 24 °C behaviour;
-        # heating is fixed to 25 °C (raw 260 with the installation calibration).
+        # heating is fixed to 25 °C (raw 250, verified on the physical DRT-300).
         forced_raw = (
             FORCED_COOLING_SETPOINT_RAW
             if state.global_cooling

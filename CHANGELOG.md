@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2] - 2026-09-30
+
+### Fixed
+- Corrected the forced heating comfort/reference register value from raw 260 to raw 250.
+- Field verification showed raw 260 displays 26 °C on the physical DRT-300 with the wheel centred; raw 250 is required for a physical 25 °C centre.
+- Home Assistant heating centre remains 25 °C; Economy behaviour remains untouched.
+
 ## [1.0.1] - 2026-09-30
 
 ### Fixed
